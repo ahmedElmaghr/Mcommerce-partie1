@@ -3,8 +3,6 @@ package com.ecommerce.microcommerce.web.controller;
 import java.net.URI;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJacksonValue;
@@ -22,7 +20,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.ecommerce.microcommerce.dao.ProductDao;
 import com.ecommerce.microcommerce.dto.MargeProductDTO;
 import com.ecommerce.microcommerce.model.Product;
-import com.ecommerce.microcommerce.utils.Utils;
+import com.ecommerce.microcommerce.utils.ProductUtils;
+import com.ecommerce.microcommerce.web.exceptions.ProduitGratuitException;
 import com.ecommerce.microcommerce.web.exceptions.ProduitIntrouvableException;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -35,7 +34,7 @@ import io.swagger.annotations.ApiOperation;
 
 @RestController
 public class ProductController {
-
+	public static final String PRODUCT_MESSAGE_PRIX_ZERO = "le prix de vente doit être supérieur ou égale à zero.";
 	@Autowired
 	private ProductDao productDao;
 
@@ -76,7 +75,9 @@ public class ProductController {
 	// ajouter un produit
 	@PostMapping(value = "/Produits")
 
-	public ResponseEntity<Void> ajouterProduit(@Valid @RequestBody Product product) {
+	public ResponseEntity<Void> ajouterProduit(@RequestBody Product product) {
+		if (ProductUtils.prixProduitInvalide(product))
+			throw new ProduitGratuitException(PRODUCT_MESSAGE_PRIX_ZERO);
 
 		Product productAdded = productDao.save(product);
 
@@ -97,7 +98,8 @@ public class ProductController {
 
 	@PutMapping(value = "/Produits")
 	public void updateProduit(@RequestBody Product product) {
-
+		if (ProductUtils.prixProduitInvalide(product))
+			throw new ProduitGratuitException(PRODUCT_MESSAGE_PRIX_ZERO);
 		productDao.save(product);
 	}
 
@@ -112,7 +114,7 @@ public class ProductController {
 	@GetMapping(value = "/AdminProduits")
 	public List<MargeProductDTO> calculerMargeProduit() {
 		List<Product> products = productDao.findAll();
-		List<MargeProductDTO> margeProduct = Utils.caluclerMargeProduct(products);
+		List<MargeProductDTO> margeProduct = ProductUtils.caluclerMargeProduct(products);
 		return margeProduct;
 	}
 
