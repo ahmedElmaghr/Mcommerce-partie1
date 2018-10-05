@@ -116,4 +116,11 @@ public class ProductController {
 		return margeProduct;
 	}
 
+	@ApiOperation(value = "retourne les produit en stock, triés par ordre alphabétique.")
+	@GetMapping(value = "/Produit/sorted")
+	public List<Product> trierProduitsParOrdreAlphabetique() {
+		List<Product> productSorted = productDao.findAllByOrderByNomAsc();
+		return productSorted;
+	}
+
 }
